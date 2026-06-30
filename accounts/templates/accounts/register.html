@@ -1,0 +1,434 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - Vendor Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    .password-help-text {
+        display: none;
+        margin-top: 5px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        font-size: 0.875rem;
+    }
+    .password-help-text.show {
+        display: block;
+    }
+    .password-help-text ul {
+        margin-bottom: 0;
+        padding-left: 20px;
+    }
+    .password-help-text ul li {
+        color: #6c757d;
+    }
+    .password-help-text ul li.valid {
+        color: #198754;
+    }
+    .password-help-text ul li.invalid {
+        color: #dc3545;
+    }
+    .username-help-text {
+        display: none;
+        margin-top: 5px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+    .username-help-text.show {
+        display: block;
+    }
+    .field-feedback {
+        font-size: 0.875rem;
+        margin-top: 5px;
+    }
+    .form-control.is-valid {
+        border-color: #198754;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%23198754' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    .form-control.is-invalid {
+        border-color: #dc3545;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23dc3545'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23dc3545' stroke='none'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right calc(0.375em + 0.1875rem) center;
+        background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+    }
+    .password-strength {
+        height: 3px;
+        margin-top: 5px;
+        border-radius: 2px;
+        transition: width 0.3s ease;
+        background-color: #e9ecef;
+    }
+    .password-strength-bar {
+        height: 100%;
+        border-radius: 2px;
+        transition: width 0.3s ease, background-color 0.3s ease;
+        width: 0%;
+    }
+    .password-strength-text {
+        font-size: 0.75rem;
+        margin-top: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h4 class="mb-0"><i class="fas fa-user-plus"></i> Create Account</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" id="registerForm" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Username Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.username.id_for_label }}" class="form-label">Username </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}
+                                <div class="text-danger field-feedback">{{ form.username.errors }}</div>
+                            {% endif %}
+                            <div class="username-help-text" id="usernameHelp">
+                                Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.
+                            </div>
+                        </div>
+
+                        <!-- Email Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.email.id_for_label }}" class="form-label">Email </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}
+                                <div class="text-danger field-feedback">{{ form.email.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Password Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.password1.id_for_label }}" class="form-label">Password </label>
+                            {{ form.password1 }}
+                            {% if form.password1.errors %}
+                                <div class="text-danger field-feedback">{{ form.password1.errors }}</div>
+                            {% endif %}
+                            
+                            <!-- Password Strength Bar -->
+                            <div class="password-strength">
+                                <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                            </div>
+                            <div class="password-strength-text" id="passwordStrengthText"></div>
+                            
+                            <!-- Password Help Text -->
+                            <div class="password-help-text" id="passwordHelp">
+                                <ul>
+                                    <li id="pw-length">Your password must contain at least 8 characters.</li>
+                                    <li id="pw-common">Your password can't be a commonly used password.</li>
+                                    <li id="pw-numeric">Your password can't be entirely numeric.</li>
+                                    <li id="pw-similar">Your password can't be too similar to your other personal information.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- Confirm Password Field -->
+                        <div class="mb-3">
+                            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password </label>
+                            {{ form.password2 }}
+                            {% if form.password2.errors %}
+                                <div class="text-danger field-feedback">{{ form.password2.errors }}</div>
+                            {% endif %}
+                            <div class="password-help-text" id="confirmPasswordHelp">
+                                Enter the same password as before, for verification.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-user-plus"></i> Register
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr>
+                    <p class="text-center mb-0">
+                        Already have an account? <a href="{% url 'accounts:login' %}" class="text-success">Login here</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get form elements
+    const usernameInput = document.getElementById('{{ form.username.id_for_label }}');
+    const emailInput = document.getElementById('{{ form.email.id_for_label }}');
+    const passwordInput = document.getElementById('{{ form.password1.id_for_label }}');
+    const confirmPasswordInput = document.getElementById('{{ form.password2.id_for_label }}');
+    const usernameHelp = document.getElementById('usernameHelp');
+    const passwordHelp = document.getElementById('passwordHelp');
+    const confirmPasswordHelp = document.getElementById('confirmPasswordHelp');
+    const passwordStrengthBar = document.getElementById('passwordStrengthBar');
+    const passwordStrengthText = document.getElementById('passwordStrengthText');
+
+    // Show username help on focus
+    if (usernameInput) {
+        usernameInput.addEventListener('focus', function() {
+            usernameHelp.classList.add('show');
+        });
+        usernameInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (!usernameInput.value) {
+                    usernameHelp.classList.remove('show');
+                }
+            }, 200);
+        });
+        usernameInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                usernameHelp.classList.add('show');
+            } else {
+                usernameHelp.classList.remove('show');
+            }
+            validateUsername(this);
+        });
+    }
+
+    // Show password help on focus
+    if (passwordInput) {
+        passwordInput.addEventListener('focus', function() {
+            passwordHelp.classList.add('show');
+        });
+        passwordInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (!passwordInput.value) {
+                    passwordHelp.classList.remove('show');
+                }
+            }, 200);
+        });
+        passwordInput.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                passwordHelp.classList.add('show');
+            } else {
+                passwordHelp.classList.remove('show');
+            }
+            validatePassword(this);
+            checkPasswordStrength(this.value);
+            
+            // Also validate confirm password if it has value
+            if (confirmPasswordInput && confirmPasswordInput.value) {
+                validateConfirmPassword(confirmPasswordInput);
+            }
+        });
+    }
+
+    // Show confirm password help on focus
+    if (confirmPasswordInput) {
+        confirmPasswordInput.addEventListener('focus', function() {
+            if (passwordInput && passwordInput.value) {
+                confirmPasswordHelp.classList.add('show');
+            }
+        });
+        confirmPasswordInput.addEventListener('blur', function() {
+            setTimeout(() => {
+                if (!confirmPasswordInput.value) {
+                    confirmPasswordHelp.classList.remove('show');
+                }
+            }, 200);
+        });
+        confirmPasswordInput.addEventListener('input', function() {
+            if (this.value.length > 0 && passwordInput && passwordInput.value) {
+                confirmPasswordHelp.classList.add('show');
+            } else {
+                confirmPasswordHelp.classList.remove('show');
+            }
+            validateConfirmPassword(this);
+        });
+    }
+
+    // Validate username
+    function validateUsername(input) {
+        const value = input.value;
+        const isValid = /^[\w.@+-]+$/.test(value) && value.length <= 150;
+        if (value.length > 0) {
+            if (isValid) {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            } else {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+            }
+        } else {
+            input.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+
+    // Validate password requirements
+    function validatePassword(input) {
+        const value = input.value;
+        const requirements = {
+            length: value.length >= 8,
+            notCommon: !isCommonPassword(value),
+            notNumeric: !/^\d+$/.test(value),
+            notSimilar: !isSimilarToPersonalInfo(value)
+        };
+
+        // Update each requirement
+        document.getElementById('pw-length').className = requirements.length ? 'valid' : 'invalid';
+        document.getElementById('pw-common').className = requirements.notCommon ? 'valid' : 'invalid';
+        document.getElementById('pw-numeric').className = requirements.notNumeric ? 'valid' : 'invalid';
+        document.getElementById('pw-similar').className = requirements.notSimilar ? 'valid' : 'invalid';
+
+        // Update input validation
+        const allValid = Object.values(requirements).every(Boolean);
+        if (value.length > 0) {
+            if (allValid) {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            } else {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+            }
+        } else {
+            input.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+
+    // Check password strength
+    function checkPasswordStrength(password) {
+        let strength = 0;
+        let feedback = '';
+
+        if (password.length === 0) {
+            passwordStrengthBar.style.width = '0%';
+            passwordStrengthBar.style.backgroundColor = '#e9ecef';
+            passwordStrengthText.textContent = '';
+            return;
+        }
+
+        // Length check
+        if (password.length >= 8) strength += 25;
+        if (password.length >= 12) strength += 15;
+
+        // Contains lowercase
+        if (/[a-z]/.test(password)) strength += 15;
+        // Contains uppercase
+        if (/[A-Z]/.test(password)) strength += 15;
+        // Contains numbers
+        if (/\d/.test(password)) strength += 15;
+        // Contains special characters
+        if (/[^a-zA-Z0-9]/.test(password)) strength += 15;
+
+        // Cap at 100
+        strength = Math.min(strength, 100);
+
+        // Set color and text based on strength
+        if (strength < 30) {
+            passwordStrengthBar.style.backgroundColor = '#dc3545';
+            feedback = 'Weak';
+        } else if (strength < 60) {
+            passwordStrengthBar.style.backgroundColor = '#ffc107';
+            feedback = 'Fair';
+        } else if (strength < 80) {
+            passwordStrengthBar.style.backgroundColor = '#0dcaf0';
+            feedback = 'Good';
+        } else {
+            passwordStrengthBar.style.backgroundColor = '#198754';
+            feedback = 'Strong';
+        }
+
+        passwordStrengthBar.style.width = strength + '%';
+        passwordStrengthText.textContent = `Password Strength: ${feedback}`;
+        passwordStrengthText.style.color = passwordStrengthBar.style.backgroundColor;
+    }
+
+    // Validate confirm password
+    function validateConfirmPassword(input) {
+        const password = passwordInput ? passwordInput.value : '';
+        const confirmPassword = input.value;
+
+        if (confirmPassword.length > 0) {
+            if (confirmPassword === password) {
+                input.classList.remove('is-invalid');
+                input.classList.add('is-valid');
+            } else {
+                input.classList.remove('is-valid');
+                input.classList.add('is-invalid');
+            }
+        } else {
+            input.classList.remove('is-valid', 'is-invalid');
+        }
+    }
+
+    // Check if password is common
+    function isCommonPassword(password) {
+        const commonPasswords = [
+            'password', '123456', '12345678', '1234', 'qwerty', 
+            'abc123', 'monkey', 'letmein', 'dragon', '111111', 
+            'baseball', 'iloveyou', 'trustno1', 'sunshine', 'master'
+        ];
+        return commonPasswords.includes(password.toLowerCase());
+    }
+
+    // Check if password is similar to personal info
+    function isSimilarToPersonalInfo(password) {
+        const username = usernameInput ? usernameInput.value.toLowerCase() : '';
+        const email = emailInput ? emailInput.value.toLowerCase() : '';
+        const passwordLower = password.toLowerCase();
+
+        if (username && passwordLower.includes(username)) return true;
+        if (email) {
+            const emailParts = email.split('@')[0];
+            if (emailParts && passwordLower.includes(emailParts)) return true;
+        }
+        return false;
+    }
+
+    // Form submission validation
+    const form = document.getElementById('registerForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Trigger validation on all fields
+            if (usernameInput) validateUsername(usernameInput);
+            if (passwordInput) validatePassword(passwordInput);
+            if (confirmPasswordInput) validateConfirmPassword(confirmPasswordInput);
+
+            // Check if all fields are valid
+            const invalidFields = form.querySelectorAll('.is-invalid');
+            if (invalidFields.length > 0) {
+                e.preventDefault();
+                // Focus on first invalid field
+                invalidFields[0].focus();
+            }
+        });
+    }
+
+    // Email validation on input
+    if (emailInput) {
+        emailInput.addEventListener('input', function() {
+            const value = this.value;
+            const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+            if (value.length > 0) {
+                if (isValid) {
+                    this.classList.remove('is-invalid');
+                    this.classList.add('is-valid');
+                } else {
+                    this.classList.remove('is-valid');
+                    this.classList.add('is-invalid');
+                }
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

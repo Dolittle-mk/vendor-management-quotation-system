@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Vendors - Vendor Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-building"></i> Vendors</h2>
+        <a href="{% url 'vendors:vendor_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Add Vendor
+        </a>
+    </div>
+
+    <!-- Search - FIXED: No auto-submit -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" class="d-flex" id="vendorSearchForm">
+                <input type="text" name="search" class="form-control me-2" 
+                       placeholder="Search vendors by name, company, or email..." 
+                       value="{{ search_query }}"
+                       id="vendorSearchInput" autocomplete="off">
+                <button type="submit" class="btn btn-outline-primary" id="vendorSearchButton">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                {% if search_query %}
+                    <a href="{% url 'vendors:vendor_list' %}" class="btn btn-outline-secondary ms-2" id="vendorClearButton">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                {% endif %}
+            </form>
+            <small class="text-muted mt-1 d-block">
+                <i class="fas fa-info-circle"></i> Press Enter or click Search to find vendors
+            </small>
+        </div>
+        <div class="col-md-6 text-end">
+            <span class="text-muted">{{ vendors.paginator.count }} vendors found</span>
+        </div>
+    </div>
+
+    <!-- Vendor Cards -->
+    <div class="row">
+        {% for vendor in vendors %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ vendor.company_name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ vendor.vendor_name }}</h6>
+                        <p class="card-text">
+                            <i class="fas fa-envelope"></i> {{ vendor.email }}<br>
+                            <i class="fas fa-phone"></i> {{ vendor.contact_number }}<br>
+                            <i class="fas fa-map-marker-alt"></i> {{ vendor.business_address|truncatechars:50 }}
+                        </p>
+                        <div class="badge bg-info text-dark">
+                            <i class="fas fa-file-invoice"></i> {{ vendor.get_quotations_count }} quotations
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <div class="btn-group w-100" role="group">
+                            <a href="{% url 'vendors:vendor_detail' vendor.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="{% url 'vendors:vendor_update' vendor.pk %}" class="btn btn-outline-warning btn-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="{% url 'vendors:vendor_delete' vendor.pk %}" class="btn btn-outline-danger btn-sm">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="fas fa-building fa-3x mb-3 d-block"></i>
+                    <h4>No vendors found</h4>
+                    <p>{% if search_query %}No vendors match your search criteria.{% else %}Get started by adding your first vendor.{% endif %}</p>
+                    <a href="{% url 'vendors:vendor_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Vendor
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if vendors.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if vendors.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ vendors.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in vendors.paginator.page_range %}
+                    <li class="page-item {% if vendors.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                {% endfor %}
+                
+                {% if vendors.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ vendors.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

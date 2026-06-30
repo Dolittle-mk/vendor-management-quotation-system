@@ -1,0 +1,365 @@
+{% extends 'base.html' %}
+
+{% block title %}Compare Quotations{% endblock %}
+
+{% block extra_css %}
+<style>
+    .status-tracker {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+    .status-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.7rem;
+        color: #6c757d;
+        min-width: 50px;
+    }
+    .status-step .step-circle {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #dee2e6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        margin-bottom: 2px;
+        transition: all 0.3s;
+    }
+    .status-step .step-circle.completed {
+        background: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+    .status-step .step-circle.active {
+        background: #ffc107;
+        border-color: #ffc107;
+        color: #000;
+        animation: pulse 1.5s infinite;
+    }
+    .status-step .step-circle.pending {
+        background: #e9ecef;
+        border-color: #dee2e6;
+        color: #6c757d;
+    }
+    .status-step .step-label {
+        font-size: 0.6rem;
+        text-align: center;
+        max-width: 60px;
+    }
+    .status-connector {
+        width: 20px;
+        height: 2px;
+        background: #dee2e6;
+        flex-shrink: 0;
+    }
+    .status-connector.completed {
+        background: #28a745;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    .comparison-card {
+        transition: all 0.3s ease;
+    }
+    .comparison-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .best-value {
+        border: 2px solid #28a745;
+        position: relative;
+    }
+    .best-value::before {
+        content: '🏆 BEST VALUE';
+        position: absolute;
+        top: -10px;
+        right: 10px;
+        background: #28a745;
+        color: white;
+        padding: 2px 10px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-balance-scale"></i> Compare Quotations</h2>
+        <a href="{% url 'quotations:quotation_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Quotations
+        </a>
+    </div>
+
+    {% if form %}
+        <!-- Selection Form -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-check-square"></i> Select Quotations to Compare</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Select at least 2 quotations to compare them side by side.</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="row">
+                        {% for choice in form.quotation_ids.field.choices %}
+                            <div class="col-md-4 col-lg-3 mb-2">
+                                <div class="form-check">
+                                    <input type="checkbox" name="quotation_ids" value="{{ choice.0 }}" 
+                                           class="form-check-input" id="quote_{{ choice.0 }}">
+                                    <label class="form-check-label" for="quote_{{ choice.0 }}">
+                                        {{ choice.1 }}
+                                    </label>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% if form.quotation_ids.errors %}
+                        <div class="text-danger mt-2">{{ form.quotation_ids.errors }}</div>
+                    {% endif %}
+                    <button type="submit" class="btn btn-success mt-3">
+                        <i class="fas fa-balance-scale"></i> Compare Selected
+                    </button>
+                </form>
+            </div>
+        </div>
+    {% else %}
+        <!-- Comparison Results -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Comparison Results</h5>
+            </div>
+            <div class="card-body">
+                <!-- Savings Alert -->
+                {% if savings > 0 %}
+                    <div class="alert alert-success">
+                        <i class="fas fa-gift"></i> 
+                        <strong>Potential Savings:</strong> You could save up to 
+                        <strong>${{ savings|floatformat:2 }}</strong> by choosing the best quotation!
+                    </div>
+                {% endif %}
+
+                <!-- Quotation Cards -->
+                <div class="row mb-4">
+                    {% for quotation in quotations %}
+                        <div class="col-md-{{ 12|divisibleby:quotations.count|yesno:"4,6" }} mb-3">
+                            <div class="card h-100 comparison-card {% if quotation == cheapest %}best-value{% endif %}">
+                                <div class="card-header text-center {% if quotation == cheapest %}bg-success text-white{% else %}bg-light{% endif %}">
+                                    <h6 class="mb-0">{{ quotation.title }}</h6>
+                                    <small class="{% if quotation == cheapest %}text-white-50{% else %}text-muted{% endif %}">
+                                        {{ quotation.vendor.company_name }}
+                                    </small>
+                                </div>
+                                <div class="card-body">
+                                    <div class="text-center mb-3">
+                                        <h3 class="{% if quotation == cheapest %}text-success{% else %}text-primary{% endif %}">
+                                            ${{ quotation.amount|floatformat:2 }}
+                                        </h3>
+                                        <span class="badge bg-{{ quotation.get_status_badge }}">
+                                            {{ quotation.get_status_display }}
+                                        </span>
+                                        {% if quotation == cheapest %}
+                                            <span class="badge bg-success ms-1">Best Price</span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="mb-2">
+                                        <small class="text-muted">Reference:</small>
+                                        <br><code>{{ quotation.reference }}</code>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">Submitted:</small>
+                                        <br>{{ quotation.submission_date|date:"Y-m-d" }}
+                                    </div>
+                                    {% if quotation.response_notes %}
+                                        <div class="mb-2">
+                                            <small class="text-muted">Notes:</small>
+                                            <br><small>{{ quotation.response_notes|truncatechars:50 }}</small>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <!-- Status Tracker -->
+                                    <div class="mt-3 pt-2 border-top">
+                                        <small class="text-muted d-block mb-2">Status Tracking:</small>
+                                        <div class="status-tracker">
+                                            <div class="status-step">
+                                                <div class="step-circle {% if quotation.status == 'draft' %}active{% elif quotation.status in 'pending,received,approved,rejected' %}completed{% else %}pending{% endif %}">
+                                                    <i class="fas fa-file"></i>
+                                                </div>
+                                                <span class="step-label">Draft</span>
+                                            </div>
+                                            <div class="status-connector {% if quotation.status in 'pending,received,approved,rejected' %}completed{% endif %}"></div>
+                                            
+                                            <div class="status-step">
+                                                <div class="step-circle {% if quotation.status == 'pending' %}active{% elif quotation.status in 'received,approved,rejected' %}completed{% else %}pending{% endif %}">
+                                                    <i class="fas fa-clock"></i>
+                                                </div>
+                                                <span class="step-label">Pending</span>
+                                            </div>
+                                            <div class="status-connector {% if quotation.status in 'received,approved,rejected' %}completed{% endif %}"></div>
+                                            
+                                            <div class="status-step">
+                                                <div class="step-circle {% if quotation.status == 'received' %}active{% elif quotation.status in 'approved,rejected' %}completed{% else %}pending{% endif %}">
+                                                    <i class="fas fa-inbox"></i>
+                                                </div>
+                                                <span class="step-label">Received</span>
+                                            </div>
+                                            <div class="status-connector {% if quotation.status in 'approved,rejected' %}completed{% endif %}"></div>
+                                            
+                                            <div class="status-step">
+                                                <div class="step-circle {% if quotation.status == 'approved' %}completed{% elif quotation.status == 'rejected' %}completed{% else %}pending{% endif %}">
+                                                    <i class="fas {% if quotation.status == 'approved' %}fa-check{% elif quotation.status == 'rejected' %}fa-times{% else %}fa-question{% endif %}"></i>
+                                                </div>
+                                                <span class="step-label">
+                                                    {% if quotation.status == 'approved' %}Approved ✅
+                                                    {% elif quotation.status == 'rejected' %}Rejected ❌
+                                                    {% else %}Final{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-footer text-center bg-transparent">
+                                    <a href="{% url 'quotations:quotation_detail' quotation.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View Details
+                                    </a>
+                                    <a href="{% url 'quotations:quotation_history' quotation.pk %}" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-history"></i> History
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Detailed Comparison Table -->
+                <div class="table-responsive mt-4">
+                    <h5><i class="fas fa-table"></i> Detailed Comparison</h5>
+                    <table class="table table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 150px;">Feature</th>
+                                {% for quotation in quotations %}
+                                    <th class="text-center {% if quotation == cheapest %}table-success{% endif %}">
+                                        {{ quotation.vendor.company_name }}
+                                        {% if quotation == cheapest %}
+                                            <span class="badge bg-success ms-1">Best</span>
+                                        {% endif %}
+                                    </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Quotation Title</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center">{{ quotation.title }}</td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                <td><strong>Reference</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center"><code>{{ quotation.reference }}</code></td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                <td><strong>Amount</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center {% if quotation == cheapest %}text-success fw-bold{% endif %}">
+                                        ${{ quotation.amount|floatformat:2 }}
+                                        {% if quotation == cheapest %}
+                                            <i class="fas fa-check-circle text-success"></i>
+                                        {% endif %}
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                <td><strong>Status</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center">
+                                        <span class="badge bg-{{ quotation.get_status_badge }}">
+                                            {{ quotation.get_status_display }}
+                                        </span>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                <td><strong>Submission Date</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center">{{ quotation.submission_date|date:"Y-m-d" }}</td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                <td><strong>Status Progress</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center">
+                                        <div class="progress" style="height: 20px;">
+                                            {% if quotation.status == 'draft' %}
+                                                <div class="progress-bar bg-secondary" style="width: 20%">Draft</div>
+                                            {% elif quotation.status == 'pending' %}
+                                                <div class="progress-bar bg-warning" style="width: 40%">Pending</div>
+                                            {% elif quotation.status == 'received' %}
+                                                <div class="progress-bar bg-info" style="width: 60%">Received</div>
+                                            {% elif quotation.status == 'approved' %}
+                                                <div class="progress-bar bg-success" style="width: 100%">Approved ✅</div>
+                                            {% elif quotation.status == 'rejected' %}
+                                                <div class="progress-bar bg-danger" style="width: 100%">Rejected ❌</div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                            <tr>
+                                <td><strong>Actions</strong></td>
+                                {% for quotation in quotations %}
+                                    <td class="text-center">
+                                        <a href="{% url 'quotations:quotation_detail' quotation.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'quotations:quotation_history' quotation.pk %}" class="btn btn-sm btn-outline-info">
+                                            <i class="fas fa-history"></i>
+                                        </a>
+                                    </td>
+                                {% endfor %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary -->
+                <div class="alert alert-success mt-4">
+                    <h5><i class="fas fa-trophy"></i> Recommendation</h5>
+                    <p>The most cost-effective quotation is from <strong>{{ cheapest.vendor.company_name }}</strong> with a price of <strong>${{ cheapest.amount|floatformat:2 }}</strong>.</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <a href="{% url 'quotations:quotation_detail' cheapest.pk %}" class="btn btn-success">
+                            <i class="fas fa-eye"></i> View Best Quotation
+                        </a>
+                        <a href="{% url 'quotations:quotation_history' cheapest.pk %}" class="btn btn-info">
+                            <i class="fas fa-history"></i> View History
+                        </a>
+                        <a href="{% url 'quotations:quotation_update' cheapest.pk %}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Update Status
+                        </a>
+                    </div>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'quotations:quotation_compare' %}" class="btn btn-primary">
+                        <i class="fas fa-redo"></i> Compare Again
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

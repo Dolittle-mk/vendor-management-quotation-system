@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Vendor Management & Quotation System{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome 6 (Free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        main {
+            flex: 1 0 auto;
+        }
+        footer {
+            flex-shrink: 0;
+            margin-top: auto;
+        }
+        .navbar-brand {
+            font-weight: 700;
+        }
+        .nav-link {
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #fff !important;
+        }
+        .nav-link.active {
+            color: #fff !important;
+            background-color: rgba(255,255,255,0.1);
+            border-radius: 5px;
+        }
+        .dropdown-item:active {
+            background-color: #0d6efd;
+        }
+        .footer-link {
+            transition: color 0.2s;
+        }
+        .footer-link:hover {
+            color: #ffffff !important;
+        }
+        .social-icon {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            transition: all 0.3s;
+            color: #fff;
+            margin: 0 5px;
+        }
+        .social-icon:hover {
+            background: #0d6efd;
+            transform: translateY(-3px);
+            color: #fff;
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #0d6efd;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .breadcrumb-item a {
+            text-decoration: none;
+            color: #0d6efd;
+        }
+        .breadcrumb-item a:hover {
+            text-decoration: underline;
+        }
+        .admin-badge {
+            font-size: 0.65rem;
+            background-color: #ffc107;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 10px;
+            margin-left: 5px;
+        }
+        .register-btn {
+            border-radius: 20px;
+            padding: 8px 20px;
+        }
+        .admin-nav-link {
+            color: #ffc107 !important;
+            font-weight: 600;
+        }
+        .admin-nav-link:hover {
+            color: #fff !important;
+        }
+        .admin-nav-link i {
+            color: #ffc107;
+        }
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1rem;
+            }
+            .user-avatar {
+                width: 28px;
+                height: 28px;
+                font-size: 12px;
+            }
+            .register-btn {
+                padding: 6px 15px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Pass user data to JavaScript using json_script -->
+    {% if user.is_authenticated %}
+        {{ user.is_superuser|json_script:"userIsSuperuser" }}
+        {{ user.username|json_script:"username" }}
+    {% else %}
+        {{ False|json_script:"userIsSuperuser" }}
+    {% endif %}
+
+    <!-- ========== NAVIGATION BAR ========== -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-lg sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{% url 'accounts:home' %}">
+                <i class="fas fa-tasks me-2"></i> Vendor Quotation System
+            </a>
+            
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="mainNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/accounts/home/' or request.path == '/' %}active{% endif %}" 
+                           href="{% url 'accounts:home' %}">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if '/about/' in request.path %}active{% endif %}" 
+                           href="{% url 'accounts:about' %}">
+                            <i class="fas fa-info-circle"></i> About
+                        </a>
+                    </li>
+                    
+                    <!-- Show these only when user is logged in -->
+                    {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/dashboard/' in request.path %}active{% endif %}" 
+                               href="{% url 'dashboard:dashboard' %}">
+                                <i class="fas fa-chart-pie"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/vendors/' in request.path %}active{% endif %}" 
+                               href="{% url 'vendors:vendor_list' %}">
+                                <i class="fas fa-building"></i> Vendors
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/quotations/' in request.path %}active{% endif %}" 
+                               href="{% url 'quotations:quotation_list' %}">
+                                <i class="fas fa-file-invoice"></i> Quotations
+                            </a>
+                        </li>
+                        
+                        <!-- ADMIN LINK - Only visible to superusers -->
+                        {% if user.is_superuser %}
+                            <li class="nav-item">
+                                <a class="nav-link admin-nav-link {% if '/admin/' in request.path %}active{% endif %}" 
+                                   href="/admin/" target="_blank">
+                                    <i class="fas fa-crown"></i> Admin Panel
+                                    <span class="admin-badge">Admin</span>
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    {% if user.is_authenticated %}
+                        <!-- User Dropdown -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" 
+                               href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <span class="user-avatar">{{ user.username|make_list|first|upper }}</span>
+                                <span class="d-none d-md-inline">{{ user.username }}</span>
+                                {% if user.is_superuser %}
+                                    <span class="admin-badge">Admin</span>
+                                {% endif %}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" aria-labelledby="userDropdown">
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'accounts:profile' %}">
+                                        <i class="fas fa-id-card me-2"></i> My Profile
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'dashboard:dashboard' %}">
+                                        <i class="fas fa-chart-pie me-2"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'vendors:vendor_list' %}">
+                                        <i class="fas fa-building me-2"></i> Vendors
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="{% url 'quotations:quotation_list' %}">
+                                        <i class="fas fa-file-invoice me-2"></i> Quotations
+                                    </a>
+                                </li>
+                                {% if user.is_superuser %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="/admin/" target="_blank">
+                                            <i class="fas fa-crown me-2"></i> Admin Panel
+                                            <span class="badge bg-warning text-dark ms-2">Admin</span>
+                                        </a>
+                                    </li>
+                                {% endif %}
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item text-danger" href="{% url 'accounts:logout' %}">
+                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <!-- Show Login/Register for guests -->
+                        <li class="nav-item">
+                            <a class="nav-link {% if '/login/' in request.path %}active{% endif %}" 
+                               href="{% url 'accounts:login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary text-white px-3 mx-1 register-btn {% if '/register/' in request.path %}active{% endif %}" 
+                               href="{% url 'accounts:register' %}">
+                                <i class="fas fa-user-plus"></i> Register
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== BREADCRUMB ========== -->
+    {% block breadcrumb %}
+    <div class="container mt-3">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'accounts:home' %}"><i class="fas fa-home"></i> Home</a>
+                </li>
+                {% block breadcrumb_items %}{% endblock %}
+            </ol>
+        </nav>
+    </div>
+    {% endblock %}
+
+    <!-- ========== MESSAGES / ALERTS ========== -->
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    <i class="fas {% if message.tags == 'alert-success' %}fa-check-circle{% elif message.tags == 'alert-danger' %}fa-exclamation-circle{% elif message.tags == 'alert-warning' %}fa-exclamation-triangle{% elif message.tags == 'alert-info' %}fa-info-circle{% else %}fa-bell{% endif %} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- ========== TOAST NOTIFICATIONS ========== -->
+    <div class="toast-container"></div>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="container-fluid py-4">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="bg-dark text-white pt-5 pb-3 mt-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">
+                        <i class="fas fa-tasks text-primary me-2"></i> Vendor Quotation System
+                    </h5>
+                    <p class="text-muted small">
+                        Efficiently manage vendors and quotations in one centralized platform. 
+                        Streamline your procurement process and make data-driven decisions.
+                    </p>
+                    <div class="mt-3">
+                        <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon"><i class="fab fa-youtube"></i></a>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">Quick Links</h5>
+                    <ul class="list-unstyled small">
+                        <li class="mb-2">
+                            <a href="{% url 'accounts:home' %}" class="text-decoration-none text-muted footer-link">
+                                <i class="fas fa-chevron-right me-1" style="font-size: 10px;"></i> Home
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <a href="{% url 'accounts:about' %}" class="text-decoration-none text-muted footer-link">
+                                <i class="fas fa-chevron-right me-1" style="font-size: 10px;"></i> About Us
+                            </a>
+                        </li>
+                        {% if user.is_authenticated %}
+                            <li class="mb-2">
+                                <a href="{% url 'dashboard:dashboard' %}" class="text-decoration-none text-muted footer-link">
+                                    <i class="fas fa-chevron-right me-1" style="font-size: 10px;"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'vendors:vendor_list' %}" class="text-decoration-none text-muted footer-link">
+                                    <i class="fas fa-chevron-right me-1" style="font-size: 10px;"></i> Vendors
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="{% url 'quotations:quotation_list' %}" class="text-decoration-none text-muted footer-link">
+                                    <i class="fas fa-chevron-right me-1" style="font-size: 10px;"></i> Quotations
+                                </a>
+                            </li>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <li class="mb-2">
+                                <a href="/admin/" class="text-decoration-none text-muted footer-link" target="_blank">
+                                    <i class="fas fa-chevron-right me-1" style="font-size: 10px;"></i> Admin Panel
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                    </ul>
+                </div>
+                
+                <div class="col-md-4">
+                    <h5 class="fw-bold mb-3">Contact Us</h5>
+                    <ul class="list-unstyled small text-muted">
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i> 
+                            <a href="mailto:support@vendorquotation.com" class="text-decoration-none text-muted footer-link">
+                                email@gmail.com
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i> 
+                            <a href="tel:+15551234567" class="text-decoration-none text-muted footer-link">
+                                +921111111111
+                            </a>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i> 
+                            Pakistan
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock me-2 text-primary"></i> 
+                            Mon - Fri: 9:00 AM - 6:00 PM
+                        </li>
+                        {% if user.is_superuser %}
+                            <li class="mb-2">
+                                <i class="fas fa-crown me-2 text-warning"></i> 
+                                <span class="text-warning">Administrator Access</span>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            <hr class="border-secondary mt-4">
+            <div class="row align-items-center">
+                <div class="col-md-6 text-center text-md-start">
+                    <p class="small text-muted mb-0">
+                        &copy; {% now "Y" %} Vendor Management & Quotation System. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <p class="small text-muted mb-0">
+                        {% if user.is_superuser %}
+                            <span class="badge bg-warning text-dark ms-2">v1.0</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ========== BACK TO TOP BUTTON ========== -->
+    <button onclick="scrollToTop()" id="backToTopBtn" 
+            class="btn btn-primary rounded-circle shadow-lg" 
+            style="position: fixed; bottom: 20px; right: 20px; display: none; width: 45px; height: 45px; z-index: 999;">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    {% load static %}
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+    <script>
+        // ===== BACK TO TOP BUTTON =====
+        window.onscroll = function() {
+            var btn = document.getElementById("backToTopBtn");
+            if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+                btn.style.display = "block";
+            } else {
+                btn.style.display = "none";
+            }
+        };
+        
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ===== AUTO DISMISS ALERTS =====
+        document.addEventListener('DOMContentLoaded', function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    var closeBtn = alert.querySelector('.btn-close');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    }
+                }, 5000);
+            });
+
+            // ===== TOAST NOTIFICATIONS =====
+            window.showToast = function(title, message, type) {
+                type = type || 'success';
+                var colors = {
+                    success: 'bg-success text-white',
+                    danger: 'bg-danger text-white',
+                    warning: 'bg-warning text-dark',
+                    info: 'bg-info text-white'
+                };
+                
+                var icons = {
+                    success: 'fa-check-circle',
+                    danger: 'fa-exclamation-circle',
+                    warning: 'fa-exclamation-triangle',
+                    info: 'fa-info-circle'
+                };
+                
+                var toastContainer = document.querySelector('.toast-container');
+                var toast = document.createElement('div');
+                toast.className = 'toast align-items-center ' + (colors[type] || colors.info) + ' border-0 show';
+                toast.role = 'alert';
+                toast.innerHTML = 
+                    '<div class="d-flex">' +
+                        '<div class="toast-body">' +
+                            '<i class="fas ' + (icons[type] || icons.info) + ' me-2"></i>' +
+                            '<strong>' + title + '</strong> - ' + message +
+                        '</div>' +
+                        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>' +
+                    '</div>';
+                toastContainer.appendChild(toast);
+                
+                setTimeout(function() {
+                    toast.remove();
+                }, 4000);
+            };
+
+            // ===== NAVBAR ACTIVE STATE =====
+            var currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link').forEach(function(link) {
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            // ===== TOOLTIP INITIALIZATION =====
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
+            // ===== ADMIN BADGE TOOLTIP =====
+            var adminBadges = document.querySelectorAll('.admin-badge');
+            adminBadges.forEach(function(badge) {
+                badge.setAttribute('data-bs-toggle', 'tooltip');
+                badge.setAttribute('data-bs-placement', 'bottom');
+                badge.setAttribute('title', 'You have administrator privileges');
+                new bootstrap.Tooltip(badge);
+            });
+
+            // ===== CONSOLE WELCOME MESSAGE =====
+            console.log('%c Vendor Quotation System ', 'background: #0d6efd; color: white; font-size: 16px; padding: 10px; border-radius: 5px;');
+            console.log('%c Welcome to the Vendor Management & Quotation System! ', 'color: #0d6efd; font-size: 14px;');
+
+            // Get user data from json_script
+            var userIsSuperuserElement = document.getElementById('userIsSuperuser');
+            if (userIsSuperuserElement) {
+                var userIsSuperuser = JSON.parse(userIsSuperuserElement.textContent);
+                if (userIsSuperuser) {
+                    console.log('%c  Admin Mode Activated  ', 'background: #ffc107; color: #000; font-size: 14px; padding: 5px; border-radius: 3px;');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

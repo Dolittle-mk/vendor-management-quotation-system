@@ -1,0 +1,574 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Vendor Management System{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 50%, #084298 100%);
+        padding: 80px 0 60px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 0 0 30px 30px;
+        margin-bottom: 60px;
+    }
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -10%;
+        width: 500px;
+        height: 500px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 50%;
+    }
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        bottom: -30%;
+        left: -5%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.03);
+        border-radius: 50%;
+    }
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    .hero-title {
+        font-size: 3.2rem;
+        font-weight: 800;
+        color: #fff;
+        line-height: 1.2;
+        margin-bottom: 20px;
+    }
+    .hero-title span {
+        color: #ffc107;
+    }
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: rgba(255,255,255,0.9);
+        max-width: 550px;
+        margin-bottom: 30px;
+        line-height: 1.6;
+    }
+    .hero-badge {
+        display: inline-block;
+        background: rgba(255,255,255,0.15);
+        color: #fff;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-bottom: 20px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .hero-badge i {
+        margin-right: 8px;
+        color: #ffc107;
+    }
+    .hero-image {
+        position: relative;
+        z-index: 1;
+    }
+    .hero-image img {
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        max-width: 100%;
+        height: auto;
+        animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0px); }
+    }
+    .hero-stats {
+        display: flex;
+        gap: 40px;
+        margin-top: 30px;
+    }
+    .hero-stat {
+        color: #fff;
+    }
+    .hero-stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: block;
+        color: #ffc107;
+    }
+    .hero-stat-label {
+        font-size: 0.9rem;
+        opacity: 0.8;
+    }
+    .btn-hero {
+        padding: 14px 40px;
+        font-weight: 600;
+        border-radius: 50px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    .btn-hero:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .btn-hero-primary {
+        background: #ffc107;
+        color: #000;
+        border: none;
+    }
+    .btn-hero-primary:hover {
+        background: #ffca2c;
+        color: #000;
+    }
+    .btn-hero-outline {
+        background: transparent;
+        color: #fff;
+        border: 2px solid rgba(255,255,255,0.3);
+    }
+    .btn-hero-outline:hover {
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+        border-color: #fff;
+    }
+
+    /* Features Section - CENTERED */
+    .features-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .section-title {
+        text-align: center;
+        margin-bottom: 50px;
+    }
+    .section-title h2 {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 10px;
+    }
+    .section-title p {
+        color: #6c757d;
+        font-size: 1.1rem;
+        max-width: 550px;
+        margin: 0 auto;
+    }
+    .section-title .title-line {
+        width: 60px;
+        height: 4px;
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        margin: 15px auto 0;
+        border-radius: 2px;
+    }
+    .feature-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 35px 30px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e9ecef;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .feature-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .feature-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 40px rgba(13, 110, 253, 0.12);
+        border-color: rgba(13, 110, 253, 0.2);
+    }
+    .feature-card:hover::before {
+        opacity: 1;
+    }
+    .feature-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 16px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
+        color: #fff;
+        transition: transform 0.3s ease;
+    }
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1) rotate(-5deg);
+    }
+    .feature-icon.blue {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+    }
+    .feature-icon.green {
+        background: linear-gradient(135deg, #198754, #157347);
+    }
+    .feature-icon.warning {
+        background: linear-gradient(135deg, #ffc107, #e0a800);
+    }
+    .feature-icon.purple {
+        background: linear-gradient(135deg, #6f42c1, #5a32a3);
+    }
+    .feature-card h5 {
+        font-weight: 700;
+        color: #1a1a2e;
+        margin-bottom: 12px;
+    }
+    .feature-card p {
+        color: #6c757d;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 0;
+    }
+
+    /* Stats Section - CENTERED */
+    .stats-section {
+        background: #f8f9fa;
+        padding: 50px 0;
+        border-radius: 30px;
+        margin: 60px auto;
+        max-width: 900px;
+    }
+    .stats-section .row {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .stat-box {
+        text-align: center;
+        padding: 10px 20px;
+    }
+    .stat-box .number {
+        font-size: 2.8rem;
+        font-weight: 800;
+        display: block;
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+    .stat-box .label {
+        color: #6c757d;
+        font-weight: 500;
+        font-size: 1rem;
+        display: block;
+        margin-top: 5px;
+    }
+
+    /* CTA Section */
+    .cta-section {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        padding: 70px 0;
+        border-radius: 30px;
+        text-align: center;
+        margin-top: 40px;
+    }
+    .cta-section h2 {
+        color: #fff;
+        font-weight: 700;
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+    }
+    .cta-section p {
+        color: rgba(255,255,255,0.8);
+        font-size: 1.1rem;
+        max-width: 550px;
+        margin: 0 auto 30px;
+    }
+    .btn-cta {
+        padding: 14px 45px;
+        border-radius: 50px;
+        font-weight: 600;
+        background: #ffc107;
+        color: #000;
+        border: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 20px rgba(255, 193, 7, 0.3);
+    }
+    .btn-cta:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(255, 193, 7, 0.4);
+        background: #ffca2c;
+        color: #000;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        .hero-section {
+            padding: 60px 0 40px;
+        }
+        .hero-stats {
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .stats-section {
+            max-width: 100%;
+            margin: 40px 15px;
+            padding: 40px 20px;
+        }
+    }
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+        .hero-section {
+            padding: 40px 0 30px;
+            border-radius: 0 0 20px 20px;
+        }
+        .btn-hero {
+            padding: 12px 30px;
+            font-size: 0.9rem;
+        }
+        .section-title h2 {
+            font-size: 2rem;
+        }
+        .feature-card {
+            padding: 25px 20px;
+        }
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+        .cta-section h2 {
+            font-size: 1.8rem;
+        }
+        .hero-image img {
+            margin-top: 30px;
+        }
+        .hero-stats {
+            justify-content: center;
+        }
+        .stats-section {
+            padding: 30px 15px;
+            margin: 30px 10px;
+            border-radius: 20px;
+        }
+        .stats-section .row {
+            flex-wrap: wrap;
+            gap: 10px 0;
+        }
+        .stat-box {
+            padding: 8px 10px;
+        }
+        .stat-box .number {
+            font-size: 1.8rem;
+        }
+        .stat-box .label {
+            font-size: 0.8rem;
+        }
+        .cta-section {
+            padding: 40px 20px;
+        }
+        .features-section {
+            padding: 0 15px;
+        }
+    }
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: 1.7rem;
+        }
+        .hero-badge {
+            font-size: 0.75rem;
+        }
+        .hero-stats {
+            gap: 15px;
+        }
+        .hero-stat-number {
+            font-size: 1.3rem;
+        }
+        .stat-box .number {
+            font-size: 1.5rem;
+        }
+        .stat-box .label {
+            font-size: 0.7rem;
+        }
+        .stats-section {
+            padding: 20px 10px;
+            border-radius: 15px;
+            margin: 20px 10px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- ===== HERO SECTION ===== -->
+<section class="hero-section">
+    <div class="container hero-content">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="hero-badge">
+                    <i class="fas fa-rocket"></i> Next Generation Vendor Management
+                </div>
+                <h1 class="hero-title">
+                    Vendor Management <br><span>&amp; Quotation System</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Efficiently manage your vendors, create quotation requests, and compare vendor proposals in one centralized platform.
+                </p>
+                <div class="d-flex flex-wrap gap-3">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-hero btn-hero-primary">
+                            <i class="fas fa-chart-pie me-2"></i> Go to Dashboard
+                        </a>
+                        <a href="{% url 'vendors:vendor_list' %}" class="btn btn-hero btn-hero-outline">
+                            <i class="fas fa-building me-2"></i> View Vendors
+                        </a>
+                    {% else %}
+                        <a href="{% url 'accounts:register' %}" class="btn btn-hero btn-hero-primary">
+                            <i class="fas fa-user-plus me-2"></i> Get Started Free
+                        </a>
+                        <a href="{% url 'accounts:login' %}" class="btn btn-hero btn-hero-outline">
+                            <i class="fas fa-sign-in-alt me-2"></i> Sign In
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">100+</span>
+                        <span class="hero-stat-label">Active Vendors</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">500+</span>
+                        <span class="hero-stat-label">Quotations</span>
+                    </div>
+                    <div class="hero-stat">
+                        <span class="hero-stat-number">98%</span>
+                        <span class="hero-stat-label">Satisfaction</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6 hero-image">
+                <div class="text-center">
+                    <div class="bg-white bg-opacity-10 p-4 rounded-4 backdrop-blur">
+                        <i class="fas fa-tasks fa-5x text-white mb-3 d-block"></i>
+                        <h3 class="text-white">Streamline Your Vendor Management</h3>
+                        <p class="text-white-50">Efficient, Organized, and User-Friendly</p>
+                        <div class="d-flex justify-content-center gap-3 mt-3">
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-check-circle text-success me-1"></i> 24/7 Support
+                            </span>
+                            <span class="badge bg-light text-dark px-3 py-2">
+                                <i class="fas fa-shield-alt text-primary me-1"></i> Secure
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== FEATURES SECTION - CENTERED ===== -->
+<section class="features-section">
+    <div class="section-title">
+        <h2>Key Features</h2>
+        <p>Everything you need to manage vendors and quotations effectively</p>
+        <div class="title-line"></div>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon blue">
+                    <i class="fas fa-building"></i>
+                </div>
+                <h5>Vendor Management</h5>
+                <p>Add, view, update, and delete vendors. Search and filter through your vendor database easily.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon green">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+                <h5>Quotation Management</h5>
+                <p>Create quotation requests, assign to vendors, submit responses, and track status updates.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon warning">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <h5>Compare Quotes</h5>
+                <p>Compare quotations from different vendors and identify the most cost-effective proposals.</p>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+                <div class="feature-icon purple">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h5>Analytics Dashboard</h5>
+                <p>Get real-time insights with total vendors, active quotations, pending approvals, and recent activities.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== STATS SECTION - CENTERED ===== -->
+<section class="stats-section">
+    <div class="row g-0 justify-content-center">
+        <div class="col-6 col-md-3">
+            <div class="stat-box">
+                <span class="number">100+</span>
+                <span class="label">Vendors Managed</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-box">
+                <span class="number">500+</span>
+                <span class="label">Quotations Processed</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-box">
+                <span class="number">98%</span>
+                <span class="label">Customer Satisfaction</span>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="stat-box">
+                <span class="number">24/7</span>
+                <span class="label">Support Available</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ===== CTA SECTION ===== -->
+<section class="cta-section container">
+    <h2>Ready to Get Started?</h2>
+    <p>Join thousands of businesses that are already managing their vendors and quotations efficiently.</p>
+    {% if user.is_authenticated %}
+        <a href="{% url 'dashboard:dashboard' %}" class="btn btn-cta">
+            <i class="fas fa-arrow-right me-2"></i> Go to Dashboard
+        </a>
+    {% else %}
+        <a href="{% url 'accounts:register' %}" class="btn btn-cta">
+            <i class="fas fa-user-plus me-2"></i> Create Your Free Account
+        </a>
+    {% endif %}
+</section>
+{% endblock %}

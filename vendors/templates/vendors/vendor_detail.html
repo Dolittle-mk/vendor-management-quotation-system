@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ vendor.company_name }} - Vendor Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-building"></i> Vendor Details</h2>
+        <div>
+            <a href="{% url 'vendors:vendor_update' vendor.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'vendors:vendor_delete' vendor.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            <a href="{% url 'vendors:vendor_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Vendor Name:</th>
+                            <td>{{ vendor.vendor_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Company Name:</th>
+                            <td>{{ vendor.company_name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td><a href="mailto:{{ vendor.email }}">{{ vendor.email }}</a></td>
+                        </tr>
+                        <tr>
+                            <th>Contact Number:</th>
+                            <td><a href="tel:{{ vendor.contact_number }}">{{ vendor.contact_number }}</a></td>
+                        </tr>
+                        <tr>
+                            <th>Business Address:</th>
+                            <td>{{ vendor.business_address|linebreaks }}</td>
+                        </tr>
+                        <tr>
+                            <th>Created:</th>
+                            <td>{{ vendor.created_at|date:"F d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ vendor.updated_at|date:"F d, Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice"></i> Quotations ({{ quotations.count }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if quotations %}
+                        <div class="list-group">
+                            {% for quotation in quotations %}
+                                <a href="{% url 'quotations:quotation_detail' quotation.pk %}" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">{{ quotation.title }}</h6>
+                                        <small class="text-muted">${{ quotation.amount|floatformat:2 }}</small>
+                                    </div>
+                                    <p class="mb-1">{{ quotation.description|truncatechars:50 }}</p>
+                                    <small class="text-muted">
+                                        Status: <span class="badge {% if quotation.status == 'pending' %}bg-warning{% elif quotation.status == 'approved' %}bg-success{% else %}bg-secondary{% endif %}">
+                                            {{ quotation.get_status_display }}
+                                        </span>
+                                    </small>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No quotations found for this vendor.</p>
+                        <div class="text-center">
+                            <a href="{% url 'quotations:quotation_create' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus"></i> Create Quotation
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

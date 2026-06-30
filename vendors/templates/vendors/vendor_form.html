@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} - Vendor Management{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 0 20px rgba(0,0,0,0.08);
+    }
+    .card-header {
+        border-radius: 12px 12px 0 0 !important;
+        padding: 18px 25px;
+    }
+    .card-body {
+        padding: 30px;
+    }
+    .form-label {
+        font-weight: 500;
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+        color: #495057;
+    }
+    .form-label .required {
+        color: #dc3545;
+        margin-left: 2px;
+    }
+    .form-control {
+        border-radius: 8px;
+        padding: 10px 12px;
+        border: 1.5px solid #e9ecef;
+        transition: all 0.2s;
+        width: 100%;
+    }
+    .form-control:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+    }
+    .form-control:hover {
+        border-color: #adb5bd;
+    }
+    textarea.form-control {
+        resize: vertical;
+        min-height: 80px;
+        max-height: 150px;
+    }
+    .help-text {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+    .error-text {
+        font-size: 0.8rem;
+        color: #dc3545;
+        margin-top: 4px;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 25px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+    .btn {
+        padding: 10px 30px;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    .btn-secondary {
+        background-color: #6c757d;
+        color: white;
+        border: none;
+    }
+    .btn-secondary:hover {
+        background-color: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+    }
+    .btn-primary {
+        background: linear-gradient(135deg, #0d6efd, #0a58ca);
+        border: none;
+        color: white;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #0a58ca, #084298);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+    }
+    @media (max-width: 768px) {
+        .form-actions {
+            flex-direction: column-reverse;
+            gap: 10px;
+        }
+        .form-actions .btn {
+            width: 100%;
+        }
+        .card-body {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-{% if vendor %}edit{% else %}plus-circle{% endif %} me-2"></i>
+                        {{ title }}
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <!-- Left Column -->
+                            <div class="col-md-6">
+                                <!-- Vendor Name -->
+                                <div class="form-group">
+                                    <label for="{{ form.vendor_name.id_for_label }}" class="form-label">
+                                        Vendor Name <span class="required">*</span>
+                                    </label>
+                                    {{ form.vendor_name }}
+                                    {% if form.vendor_name.errors %}
+                                        <div class="error-text">{{ form.vendor_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Email -->
+                                <div class="form-group">
+                                    <label for="{{ form.email.id_for_label }}" class="form-label">
+                                        Email Address <span class="required">*</span>
+                                    </label>
+                                    {{ form.email }}
+                                    {% if form.email.errors %}
+                                        <div class="error-text">{{ form.email.errors }}</div>
+                                    {% endif %}
+                                    <div class="help-text">Valid email for communication</div>
+                                </div>
+                            </div>
+
+                            <!-- Right Column -->
+                            <div class="col-md-6">
+                                <!-- Company Name -->
+                                <div class="form-group">
+                                    <label for="{{ form.company_name.id_for_label }}" class="form-label">
+                                        Company Name <span class="required">*</span>
+                                    </label>
+                                    {{ form.company_name }}
+                                    {% if form.company_name.errors %}
+                                        <div class="error-text">{{ form.company_name.errors }}</div>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Contact Number -->
+                                <div class="form-group">
+                                    <label for="{{ form.contact_number.id_for_label }}" class="form-label">
+                                        Contact Number <span class="required">*</span>
+                                    </label>
+                                    {{ form.contact_number }}
+                                    {% if form.contact_number.errors %}
+                                        <div class="error-text">{{ form.contact_number.errors }}</div>
+                                    {% endif %}
+                                    <div class="help-text">Format: +1XXXXXXXXXX</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Business Address - Full Width -->
+                        <div class="form-group">
+                            <label for="{{ form.business_address.id_for_label }}" class="form-label">
+                                Business Address <span class="required">*</span>
+                            </label>
+                            {{ form.business_address }}
+                            {% if form.business_address.errors %}
+                                <div class="error-text">{{ form.business_address.errors }}</div>
+                            {% endif %}
+                            <div class="help-text">Full business address including city, state, and zip code</div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <a href="{% if vendor %}{% url 'vendors:vendor_detail' vendor.pk %}{% else %}{% url 'vendors:vendor_list' %}{% endif %}" 
+                               class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if vendor %}Update Vendor{% else %}Create Vendor{% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

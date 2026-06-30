@@ -1,0 +1,249 @@
+{% extends 'base.html' %}
+
+{% block title %}Quotations - Vendor Management System{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-invoice"></i> Quotations</h2>
+        <div>
+            <a href="{% url 'quotations:quotation_compare' %}" class="btn btn-success me-2">
+                <i class="fas fa-balance-scale"></i> Compare
+            </a>
+            <a href="{% url 'quotations:quotation_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Quotation
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="row mb-4">
+        <div class="col-md-2 col-6">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Total</h6>
+                    <h3>{{ total_quotations|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card bg-warning bg-opacity-10">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Pending</h6>
+                    <h3 class="text-warning">{{ pending_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card bg-success bg-opacity-10">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Approved</h6>
+                    <h3 class="text-success">{{ approved_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card bg-danger bg-opacity-10">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Rejected</h6>
+                    <h3 class="text-danger">{{ rejected_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card bg-info bg-opacity-10">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Received</h6>
+                    <h3 class="text-info">{{ received_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card bg-secondary bg-opacity-10">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Draft</h6>
+                    <h3 class="text-secondary">{{ draft_count|default:"0" }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter - FIXED: No auto-submit -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <form method="get" class="d-flex" id="quotationSearchForm">
+                <input type="text" name="search" class="form-control me-2" 
+                       placeholder="Search quotations by title, reference, or vendor..." 
+                       value="{{ search_query }}"
+                       id="quotationSearchInput" autocomplete="off">
+                <select name="status" class="form-select me-2" style="width: auto;" id="quotationStatusFilter">
+                    <option value="">All Statuses</option>
+                    <option value="draft" {% if status_filter == 'draft' %}selected{% endif %}>Draft</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="received" {% if status_filter == 'received' %}selected{% endif %}>Received</option>
+                    <option value="approved" {% if status_filter == 'approved' %}selected{% endif %}>Approved</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+                <button type="submit" class="btn btn-outline-primary" id="quotationSearchButton">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                {% if search_query or status_filter %}
+                    <a href="{% url 'quotations:quotation_list' %}" class="btn btn-outline-secondary ms-2" id="quotationClearButton">
+                        <i class="fas fa-times"></i> Clear
+                    </a>
+                {% endif %}
+            </form>
+            <small class="text-muted mt-1 d-block">
+                <i class="fas fa-info-circle"></i> Press Enter or click Filter to search. Status filter applies automatically.
+            </small>
+        </div>
+        <div class="col-md-4 text-end">
+            <span class="text-muted">{{ quotations.paginator.count }} quotations found</span>
+        </div>
+    </div>
+
+    <!-- Quotation Table -->
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th>Title</th>
+                    <th>Vendor</th>
+                    <th>Reference</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Submission Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for quotation in quotations %}
+                    <tr>
+                        <td>{{ quotation.title }}</td>
+                        <td>{{ quotation.vendor.company_name }}</td>
+                        <td><code>{{ quotation.reference }}</code></td>
+                        <td>${{ quotation.amount|floatformat:2 }}</td>
+                        <td>
+                            <span class="badge bg-{{ quotation.get_status_badge }}">
+                                {{ quotation.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ quotation.submission_date|date:"Y-m-d" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a href="{% url 'quotations:quotation_detail' quotation.pk %}" class="btn btn-outline-primary" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'quotations:quotation_update' quotation.pk %}" class="btn btn-outline-warning" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'quotations:quotation_response' quotation.pk %}" class="btn btn-outline-success" title="Respond">
+                                    <i class="fas fa-reply"></i>
+                                </a>
+                                <a href="{% url 'quotations:quotation_history' quotation.pk %}" class="btn btn-outline-info" title="History">
+                                    <i class="fas fa-history"></i>
+                                </a>
+                                <a href="{% url 'quotations:quotation_delete' quotation.pk %}" class="btn btn-outline-danger" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <i class="fas fa-file-invoice fa-2x text-muted"></i>
+                            <p class="mt-2">No quotations found. <a href="{% url 'quotations:quotation_create' %}">Create your first quotation</a></p>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if quotations.has_other_pages %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+                {% if quotations.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ quotations.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </a>
+                    </li>
+                {% endif %}
+                
+                {% for num in quotations.paginator.page_range %}
+                    <li class="page-item {% if quotations.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                {% endfor %}
+                
+                {% if quotations.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ quotations.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ===== QUOTATION SEARCH - FIXED =====
+    const searchInput = document.getElementById('quotationSearchInput');
+    const searchForm = document.getElementById('quotationSearchForm');
+    const statusFilter = document.getElementById('quotationStatusFilter');
+    const searchButton = document.getElementById('quotationSearchButton');
+    
+    if (searchInput) {
+        // Remove existing event listeners
+        const newInput = searchInput.cloneNode(true);
+        searchInput.parentNode.replaceChild(newInput, searchInput);
+        
+        // Only submit on Enter key
+        newInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const form = this.closest('form');
+                if (form) {
+                    form.submit();
+                }
+            }
+        });
+    }
+    
+    if (searchButton) {
+        const newButton = searchButton.cloneNode(true);
+        searchButton.parentNode.replaceChild(newButton, searchButton);
+        
+        newButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            if (form) {
+                form.submit();
+            }
+        });
+    }
+    
+    if (statusFilter) {
+        const newFilter = statusFilter.cloneNode(true);
+        statusFilter.parentNode.replaceChild(newFilter, statusFilter);
+        
+        newFilter.addEventListener('change', function() {
+            const form = this.closest('form');
+            if (form) {
+                form.submit();
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

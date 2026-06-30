@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ quotation.title }} - Quotation Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-file-invoice"></i> Quotation Details</h2>
+        <div>
+            <a href="{% url 'quotations:quotation_update' quotation.pk %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            <a href="{% url 'quotations:quotation_response' quotation.pk %}" class="btn btn-success">
+                <i class="fas fa-reply"></i> Response
+            </a>
+            <a href="{% url 'quotations:quotation_delete' quotation.pk %}" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete
+            </a>
+            <a href="{% url 'quotations:quotation_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th style="width: 150px;">Title:</th>
+                            <td>{{ quotation.title }}</td>
+                        </tr>
+                        <tr>
+                            <th>Description:</th>
+                            <td>{{ quotation.description|linebreaks }}</td>
+                        </tr>
+                        <tr>
+                            <th>Vendor:</th>
+                            <td>
+                                <a href="{% url 'vendors:vendor_detail' quotation.vendor.pk %}">
+                                    {{ quotation.vendor.company_name }}
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Reference:</th>
+                            <td><code>{{ quotation.reference }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Amount:</th>
+                            <td class="h5 text-primary">${{ quotation.amount|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Submission Date:</th>
+                            <td>{{ quotation.submission_date|date:"F d, Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge bg-{{ quotation.get_status_badge }} fs-6">
+                                    {{ quotation.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Response Notes:</th>
+                            <td>{{ quotation.response_notes|default:"<em class='text-muted'>No response notes</em>"|linebreaks }}</td>
+                        </tr>
+                        <tr>
+                            <th>Created:</th>
+                            <td>{{ quotation.created_at|date:"F d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ quotation.updated_at|date:"F d, Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-tasks"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'quotations:quotation_response' quotation.pk %}" class="btn btn-outline-success">
+                            <i class="fas fa-reply"></i> Submit Response
+                        </a>
+                        <a href="{% url 'quotations:quotation_update' quotation.pk %}" class="btn btn-outline-primary">
+                            <i class="fas fa-edit"></i> Edit Quotation
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendor Info -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0"><i class="fas fa-building"></i> Vendor</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ quotation.vendor.company_name }}</h6>
+                    <p class="text-muted">{{ quotation.vendor.vendor_name }}</p>
+                    <p><i class="fas fa-envelope"></i> <a href="mailto:{{ quotation.vendor.email }}">{{ quotation.vendor.email }}</a></p>
+                    <p><i class="fas fa-phone"></i> {{ quotation.vendor.contact_number }}</p>
+                    <a href="{% url 'vendors:vendor_detail' quotation.vendor.pk %}" class="btn btn-sm btn-outline-secondary">
+                        <i class="fas fa-eye"></i> View Vendor
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quotation History -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0"><i class="fas fa-history"></i> History</h5>
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    {% if history %}
+                        {% for entry in history %}
+                            <div class="mb-2 pb-2 border-bottom">
+                                <small class="text-muted">{{ entry.changed_at|date:"Y-m-d H:i" }}</small>
+                                <div>
+                                    <span class="badge bg-secondary">{{ entry.get_old_status_display }}</span>
+                                    <i class="fas fa-arrow-right mx-1"></i>
+                                    <span class="badge bg-{{ entry.get_new_status_display|lower }}">{{ entry.get_new_status_display }}</span>
+                                </div>
+                                {% if entry.notes %}
+                                    <small class="text-muted d-block">{{ entry.notes }}</small>
+                                {% endif %}
+                                {% if entry.changed_by %}
+                                    <small class="text-muted">by {{ entry.changed_by.username }}</small>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">No history available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
